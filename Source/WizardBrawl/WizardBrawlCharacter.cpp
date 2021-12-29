@@ -11,6 +11,52 @@
 #include "HeadMountedDisplayFunctionLibrary.h"
 #include "Materials/Material.h"
 #include "Engine/World.h"
+#include "WBAbilitySystemComponent.h"
+#include "WBAttributeSet.h"
+#include "WBGameplayAbility.h"
+#include "WizardBrawl.h"
+
+class UAbilitySystemComponent* AWizardBrawlCharacter::GetAbilitySystemComponent() const
+{
+	return AbilitySystemComponent;
+}
+
+void AWizardBrawlCharacter::InitializeAttributes()
+{
+	if (AbilitySystemComponent && DefaultAttributeEffect) {
+		FGameplayEffectContextHandle EffectContext = AbilitySystemComponent->MakeEffectContext();
+		EffectContext.AddSourceObject(this);
+
+		FGameplayEffectSpecHandle SpecHandle = AbilitySystemComponent->MakeOutgoingSpec(DefaultAttributeEffect, 1, EffectContext);
+
+		if (SpecHandle.IsValid()) {
+			FActiveGameplayEffectHandle EffectHandle = AbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
+		}
+	}
+}
+
+void AWizardBrawlCharacter::PossessedBy(AController* NewController)
+{
+	Super::PossessedBy(NewController);
+
+	AbilitySystemComponent->InitAbilityActorInfo(this, this);
+
+	InitializeAttributes();
+}
+
+void AWizardBrawlCharacter::OnRep_PlayerState()
+{
+	Super::OnRep_PlayerState();
+
+	AbilitySystemComponent->InitAbilityActorInfo(this, this);
+
+	InitializeAttributes();
+
+	if (AbilitySystemComponent && InputComponent) {
+		FGameplayAbilityInputBinds Binds ("Confirm", "Cancel", "EWBAbilityInputID", static_cast<int32>(EWBAbilityInputID::Confirm), static_cast<int32>(EWBAbilityInputID::Cancel));
+		AbilitySystemComponent->BindAbilityActivationToInputComponent(InputComponent, Binds);
+	}
+}
 
 AWizardBrawlCharacter::AWizardBrawlCharacter()
 {
@@ -51,6 +97,12 @@ AWizardBrawlCharacter::AWizardBrawlCharacter()
 	}
 	CursorToWorld->DecalSize = FVector(16.0f, 32.0f, 32.0f);
 	CursorToWorld->SetRelativeRotation(FRotator(90.0f, 0.0f, 0.0f).Quaternion());
+
+	AbilitySystemComponent = CreateDefaultSubobject<UWBAbilitySystemComponent>("AbilitySystemComponent");
+	AbilitySystemComponent->SetIsReplicated(true);
+	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
+
+	Attributes = CreateDefaultSubobject<UWBAttributeSet>("Attributes");
 
 	// Activate ticking in order to update the cursor every frame.
 	PrimaryActorTick.bCanEverTick = true;
