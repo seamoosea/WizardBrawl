@@ -16,48 +16,6 @@
 #include "WBGameplayAbility.h"
 #include "WizardBrawl.h"
 
-class UAbilitySystemComponent* AWizardBrawlCharacter::GetAbilitySystemComponent() const
-{
-	return AbilitySystemComponent;
-}
-
-void AWizardBrawlCharacter::InitializeAttributes()
-{
-	if (AbilitySystemComponent && DefaultAttributeEffect) {
-		FGameplayEffectContextHandle EffectContext = AbilitySystemComponent->MakeEffectContext();
-		EffectContext.AddSourceObject(this);
-
-		FGameplayEffectSpecHandle SpecHandle = AbilitySystemComponent->MakeOutgoingSpec(DefaultAttributeEffect, 1, EffectContext);
-
-		if (SpecHandle.IsValid()) {
-			FActiveGameplayEffectHandle EffectHandle = AbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
-		}
-	}
-}
-
-void AWizardBrawlCharacter::PossessedBy(AController* NewController)
-{
-	Super::PossessedBy(NewController);
-
-	AbilitySystemComponent->InitAbilityActorInfo(this, this);
-
-	InitializeAttributes();
-}
-
-void AWizardBrawlCharacter::OnRep_PlayerState()
-{
-	Super::OnRep_PlayerState();
-
-	AbilitySystemComponent->InitAbilityActorInfo(this, this);
-
-	InitializeAttributes();
-
-	if (AbilitySystemComponent && InputComponent) {
-		FGameplayAbilityInputBinds Binds ("Confirm", "Cancel", "EWBAbilityInputID", static_cast<int32>(EWBAbilityInputID::Confirm), static_cast<int32>(EWBAbilityInputID::Cancel));
-		AbilitySystemComponent->BindAbilityActivationToInputComponent(InputComponent, Binds);
-	}
-}
-
 AWizardBrawlCharacter::AWizardBrawlCharacter()
 {
 	// Set size for player capsule
@@ -67,6 +25,8 @@ AWizardBrawlCharacter::AWizardBrawlCharacter()
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationYaw = false;
 	bUseControllerRotationRoll = false;
+
+    bool bIsDead = false;
 
 	// Configure character movement
 	GetCharacterMovement()->bOrientRotationToMovement = true; // Rotate character to moving direction
@@ -108,6 +68,93 @@ AWizardBrawlCharacter::AWizardBrawlCharacter()
 	PrimaryActorTick.bCanEverTick = true;
 	PrimaryActorTick.bStartWithTickEnabled = true;
 }
+
+class UAbilitySystemComponent* AWizardBrawlCharacter::GetAbilitySystemComponent() const
+{
+	return AbilitySystemComponent;
+}
+
+void AWizardBrawlCharacter::InitializeAttributes()
+{
+	if (AbilitySystemComponent && DefaultAttributeEffect) {
+		FGameplayEffectContextHandle EffectContext = AbilitySystemComponent->MakeEffectContext();
+		EffectContext.AddSourceObject(this);
+
+		FGameplayEffectSpecHandle SpecHandle = AbilitySystemComponent->MakeOutgoingSpec(DefaultAttributeEffect, 1, EffectContext);
+
+		if (SpecHandle.IsValid()) {
+			FActiveGameplayEffectHandle EffectHandle = AbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
+		}
+	}
+}
+
+
+void AWizardBrawlCharacter::AcquireAbility(TSubclassOf<UWBGameplayAbility> AbilityToAcquire)
+{
+    if(AbilitySystemComp)
+    {
+        if(HasAuthority() && AbilityToAcquire)
+        {
+            AbilitySystemComp->GiveAbility(FGameplayAbilitySpec(AbilityToAcquire, 1, 0));
+        }
+        AbilitySystemComp->InitAbilityActorInfo(this, this);
+
+    }
+}
+
+void AWizardBrawlCharacter::AcquireAbilities(TArray<TSubclassOf<UWBGameplayAbility>> AbilitiesToAcquire)
+{
+    for(TSubclassOf<UWBGameplayAbility> AbilityItem : AbilitiesToAcquire)
+    {
+        AcquireAbility(AbilityItem);
+        if(AbilityItem->IsChildOf(UWBGameplayAbility::StaticClass()))
+        {
+            TSubclassOf<UGameplayAbilityBase> AbilityBaseClass = *AbilityItem;
+           // if(AbilityBaseClass!=nullptr)
+            //{
+            //    AddAbilityToUI(AbilityBaseClass);
+            //}
+        }
+    }
+}
+
+
+
+void AWizardBrawlCharacter::PossessedBy(AController* NewController)
+{
+	Super::PossessedBy(NewController);
+
+	AbilitySystemComponent->InitAbilityActorInfo(this, this);
+
+	InitializeAttributes();
+}
+
+void AWizardBrawlCharacter::OnRep_PlayerState()
+{
+	Super::OnRep_PlayerState();
+
+	AbilitySystemComponent->InitAbilityActorInfo(this, this);
+
+	InitializeAttributes();
+
+	if (AbilitySystemComponent && InputComponent) {
+		FGameplayAbilityInputBinds Binds ("Confirm", "Cancel", "EWBAbilityInputID", static_cast<int32>(EWBAbilityInputID::Confirm), static_cast<int32>(EWBAbilityInputID::Cancel));
+		AbilitySystemComponent->BindAbilityActivationToInputComponent(InputComponent, Binds);
+	}
+}
+
+void AWizardBrawlCharacter::AddGameplayTag(FGameplayTag& TagToAdd)
+{
+    GetAbilitySystemComponent()->AddLooseGameplayTag(TagToAdd);
+    GetAbilitySystemComponent()->SetTagMapCount(TagToAdd, 1);
+}
+
+void AWizardBrawlCharacter::RemoveGameplayTag(FGameplayTag& TagToRemove)
+{
+    GetAbilitySystemComponent()->RemoveLooseGameplayTag(TagToRemove);
+}
+
+
 
 void AWizardBrawlCharacter::Tick(float DeltaSeconds)
 {

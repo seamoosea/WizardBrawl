@@ -5,11 +5,18 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "AbilitySystemInterface.h"
+#include "WBAbilitySystemComponent.h"
+#include "WBAttributeSet.h"
+#include "WBGameplayAbility.h"
 #include <GameplayEffectTypes.h>
 #include "WizardBrawlCharacter.generated.h"
 
+class UAttributeSetBase;
+class UGameplayAbilityBase;
+
+
 UCLASS(Blueprintable)
-class AWizardBrawlCharacter : public ACharacter, public IAbilitySystemInterface
+class WIZARDBRAWL_API AWizardBrawlCharacter : public ACharacter, public IAbilitySystemInterface
 {
 	GENERATED_BODY()
 
@@ -31,8 +38,27 @@ public:
 	virtual void InitializeAttributes();
 
 
+    // Called to bind functionality to input
+    //virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "WizardBrawlCharacter")
+    UWBAbilitySystemComponent* AbilitySystemComp;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "WizardBrawlCharacter")
+    UWBAttributeSet* AttributeSetBaseComp;
+
+
+
+    UFUNCTION(BlueprintCallable, Category = "CharacterBase")
+        void AcquireAbility(TSubclassOf<UWBGameplayAbility> AbilityToAcquire);
+    UFUNCTION(BlueprintCallable, Category = "CharacterBase")
+        void AcquireAbilities(TArray<TSubclassOf<UWBGameplayAbility>> AbilityToAcquire);
+
+    //acquire abilities above
+
 	virtual void PossessedBy(AController* NewController) override;
 	virtual void OnRep_PlayerState() override;
+
 
 private:
 	/** Top down camera */
@@ -55,5 +81,14 @@ private:
 
 	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "Abilities", meta = (AllowPrivateAccess = "true"))
 	TSubclassOf<class UGameplayEffect> DefaultAttributeEffect;
+
+    uint8 GetTeamID() const;
+
+    UFUNCTION(BlueprintCallable, Category = "WizardBrawlCharacter")
+        void AddGameplayTag(FGameplayTag& TagToAdd);
+    UFUNCTION(BlueprintCallable, Category = "WizardBrawlCharacter")
+      void RemoveGameplayTag(FGameplayTag& TagToRemove);
+
+
 };
 
