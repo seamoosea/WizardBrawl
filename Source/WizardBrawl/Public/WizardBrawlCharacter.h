@@ -11,9 +11,6 @@
 #include <GameplayEffectTypes.h>
 #include "WizardBrawlCharacter.generated.h"
 
-class UAttributeSetBase;
-class UGameplayAbilityBase;
-
 
 UCLASS(Blueprintable)
 class WIZARDBRAWL_API AWizardBrawlCharacter : public ACharacter, public IAbilitySystemInterface
@@ -35,17 +32,8 @@ public:
 
 	virtual class UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
-	virtual void InitializeAttributes();
-
-
     // Called to bind functionality to input
     //virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-
-    UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "WizardBrawlCharacter")
-    UWBAbilitySystemComponent* AbilitySystemComp;
-
-    UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "WizardBrawlCharacter")
-    UWBAttributeSet* AttributeSetBaseComp;
 
 
 
@@ -73,19 +61,10 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class UDecalComponent* CursorToWorld;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Abilities", meta = (AllowPrivateAccess = "true"))
-	class UWBAbilitySystemComponent* AbilitySystemComponent;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Abilities", meta = (AllowPrivateAccess = "true"))
-	class UWBAttributeSet* Attributes;
-
-	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "Abilities", meta = (AllowPrivateAccess = "true"))
-	TSubclassOf<class UGameplayEffect> DefaultAttributeEffect;
-
     uint8 GetTeamID() const;
 
     UFUNCTION(BlueprintCallable, Category = "WizardBrawlCharacter")
-        void AddGameplayTag(FGameplayTag& TagToAdd);
+      void AddGameplayTag(FGameplayTag& TagToAdd);
     UFUNCTION(BlueprintCallable, Category = "WizardBrawlCharacter")
       void RemoveGameplayTag(FGameplayTag& TagToRemove);
 

@@ -11,8 +11,7 @@
 #include "HeadMountedDisplayFunctionLibrary.h"
 #include "Materials/Material.h"
 #include "Engine/World.h"
-#include "WBAbilitySystemComponent.h"
-#include "WBAttributeSet.h"
+#include "WBPlayerState.h"
 #include "WBGameplayAbility.h"
 #include "WizardBrawl.h"
 
@@ -58,12 +57,6 @@ AWizardBrawlCharacter::AWizardBrawlCharacter()
 	CursorToWorld->DecalSize = FVector(16.0f, 32.0f, 32.0f);
 	CursorToWorld->SetRelativeRotation(FRotator(90.0f, 0.0f, 0.0f).Quaternion());
 
-	AbilitySystemComponent = CreateDefaultSubobject<UWBAbilitySystemComponent>("AbilitySystemComponent");
-	AbilitySystemComponent->SetIsReplicated(true);
-	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
-
-	Attributes = CreateDefaultSubobject<UWBAttributeSet>("Attributes");
-
 	// Activate ticking in order to update the cursor every frame.
 	PrimaryActorTick.bCanEverTick = true;
 	PrimaryActorTick.bStartWithTickEnabled = true;
@@ -71,35 +64,24 @@ AWizardBrawlCharacter::AWizardBrawlCharacter()
 
 class UAbilitySystemComponent* AWizardBrawlCharacter::GetAbilitySystemComponent() const
 {
-	return AbilitySystemComponent;
-}
-
-void AWizardBrawlCharacter::InitializeAttributes()
-{
-	if (AbilitySystemComponent && DefaultAttributeEffect) {
-		FGameplayEffectContextHandle EffectContext = AbilitySystemComponent->MakeEffectContext();
-		EffectContext.AddSourceObject(this);
-
-		FGameplayEffectSpecHandle SpecHandle = AbilitySystemComponent->MakeOutgoingSpec(DefaultAttributeEffect, 1, EffectContext);
-
-		if (SpecHandle.IsValid()) {
-			FActiveGameplayEffectHandle EffectHandle = AbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
-		}
-	}
+	AWBPlayerState* PlayerState = GetPlayerState<AWBPlayerState>();
+	if (PlayerState) return PlayerState->GetAbilitySystemComponent();
+	return nullptr;
 }
 
 
 void AWizardBrawlCharacter::AcquireAbility(TSubclassOf<UWBGameplayAbility> AbilityToAcquire)
 {
-    if(AbilitySystemComp)
-    {
-        if(HasAuthority() && AbilityToAcquire)
-        {
-            AbilitySystemComp->GiveAbility(FGameplayAbilitySpec(AbilityToAcquire, 1, 0));
-        }
-        AbilitySystemComp->InitAbilityActorInfo(this, this);
+	UWBAbilitySystemComponent* ASC = Cast<UWBAbilitySystemComponent>(GetAbilitySystemComponent());
+	if (ASC)
+	{
+		if (HasAuthority() && AbilityToAcquire)
+		{
+			ASC->GiveAbility(FGameplayAbilitySpec(AbilityToAcquire, 1, 0));
+		}
+		ASC->InitAbilityActorInfo(this, this);
 
-    }
+	}
 }
 
 void AWizardBrawlCharacter::AcquireAbilities(TArray<TSubclassOf<UWBGameplayAbility>> AbilitiesToAcquire)
@@ -107,14 +89,6 @@ void AWizardBrawlCharacter::AcquireAbilities(TArray<TSubclassOf<UWBGameplayAbili
     for(TSubclassOf<UWBGameplayAbility> AbilityItem : AbilitiesToAcquire)
     {
         AcquireAbility(AbilityItem);
-        if(AbilityItem->IsChildOf(UWBGameplayAbility::StaticClass()))
-        {
-            TSubclassOf<UGameplayAbilityBase> AbilityBaseClass = *AbilityItem;
-           // if(AbilityBaseClass!=nullptr)
-            //{
-            //    AddAbilityToUI(AbilityBaseClass);
-            //}
-        }
     }
 }
 
@@ -123,19 +97,23 @@ void AWizardBrawlCharacter::AcquireAbilities(TArray<TSubclassOf<UWBGameplayAbili
 void AWizardBrawlCharacter::PossessedBy(AController* NewController)
 {
 	Super::PossessedBy(NewController);
-
-	AbilitySystemComponent->InitAbilityActorInfo(this, this);
-
-	InitializeAttributes();
+	
+	AWBPlayerState* PlayerState = GetPlayerState<AWBPlayerState>();
+	UWBAbilitySystemComponent* AbilitySystemComponent = Cast<UWBAbilitySystemComponent>(GetAbilitySystemComponent());
+	if (PlayerState && AbilitySystemComponent) {
+		AbilitySystemComponent->InitAbilityActorInfo(this, this);
+	}
 }
 
 void AWizardBrawlCharacter::OnRep_PlayerState()
 {
 	Super::OnRep_PlayerState();
 
-	AbilitySystemComponent->InitAbilityActorInfo(this, this);
-
-	InitializeAttributes();
+	AWBPlayerState* PlayerState = GetPlayerState<AWBPlayerState>();
+	UWBAbilitySystemComponent* AbilitySystemComponent = Cast<UWBAbilitySystemComponent>(GetAbilitySystemComponent());
+	if (PlayerState && AbilitySystemComponent) {
+		AbilitySystemComponent->InitAbilityActorInfo(PlayerState, this);
+	}
 
 	if (AbilitySystemComponent && InputComponent) {
 		FGameplayAbilityInputBinds Binds ("Confirm", "Cancel", "EWBAbilityInputID", static_cast<int32>(EWBAbilityInputID::Confirm), static_cast<int32>(EWBAbilityInputID::Cancel));
@@ -153,7 +131,6 @@ void AWizardBrawlCharacter::RemoveGameplayTag(FGameplayTag& TagToRemove)
 {
     GetAbilitySystemComponent()->RemoveLooseGameplayTag(TagToRemove);
 }
-
 
 
 void AWizardBrawlCharacter::Tick(float DeltaSeconds)
