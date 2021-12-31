@@ -13,5 +13,4 @@ UCLASS()
 class WIZARDBRAWL_API UWBAbilitySystemComponent : public UAbilitySystemComponent
 {
 	GENERATED_BODY()
-	
 };

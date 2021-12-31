@@ -4,7 +4,7 @@
 #include "AttributeSetBase.h"
 #include "GameplayEffectExtension.h"
 #include "GameplayEffect.h"
-#include "WizardBrawl/WizardBrawlCharacter.h"
+#include "WizardBrawlCharacter.h"
 
 
 UAttributeSetBase::UAttributeSetBase()
