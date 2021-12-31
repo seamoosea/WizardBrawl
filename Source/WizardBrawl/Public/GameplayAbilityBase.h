@@ -4,6 +4,7 @@
 
 #include "AbilityTypes.h"
 #include "Abilities/GameplayAbility.h"
+
 #include "GameplayAbilityBase.generated.h"
 
 /**
@@ -20,5 +21,7 @@ public:
 
     UFUNCTION(BlueprintCallable, Category = "AbilityBase")
     FGameplayAbilityInfo GetAbilityInfo();
+
+
 
 };

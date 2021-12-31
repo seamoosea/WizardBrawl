@@ -13,6 +13,7 @@
 #include "Engine/World.h"
 #include "WBAbilitySystemComponent.h"
 #include "WBAttributeSet.h"
+#include "GameFramework/Controller.h"
 #include "WBGameplayAbility.h"
 #include "WizardBrawl.h"
 
@@ -73,7 +74,7 @@ class UAbilitySystemComponent* AWizardBrawlCharacter::GetAbilitySystemComponent(
 {
 	return AbilitySystemComponent;
 }
-
+/*
 void AWizardBrawlCharacter::InitializeAttributes()
 {
 	if (AbilitySystemComponent && DefaultAttributeEffect) {
@@ -87,22 +88,22 @@ void AWizardBrawlCharacter::InitializeAttributes()
 		}
 	}
 }
+*/
 
-
-void AWizardBrawlCharacter::AcquireAbility(TSubclassOf<UWBGameplayAbility> AbilityToAcquire)
+void AWizardBrawlCharacter::AcquireAbility(TSubclassOf<UGameplayAbility> AbilityToAcquire)
 {
-    if(AbilitySystemComp)
+    if(AbilitySystemComponent)
     {
         if(HasAuthority() && AbilityToAcquire)
         {
-            AbilitySystemComp->GiveAbility(FGameplayAbilitySpec(AbilityToAcquire, 1, 0));
+            AbilitySystemComponent->GiveAbility(FGameplayAbilitySpec(AbilityToAcquire, 1, 0));
         }
-        AbilitySystemComp->InitAbilityActorInfo(this, this);
+        AbilitySystemComponent->InitAbilityActorInfo(this, this);
 
     }
 }
 
-void AWizardBrawlCharacter::AcquireAbilities(TArray<TSubclassOf<UWBGameplayAbility>> AbilitiesToAcquire)
+/*void AWizardBrawlCharacter::AcquireAbilities(TArray<TSubclassOf<UWBGameplayAbility>> AbilitiesToAcquire)
 {
     for(TSubclassOf<UWBGameplayAbility> AbilityItem : AbilitiesToAcquire)
     {
@@ -116,6 +117,17 @@ void AWizardBrawlCharacter::AcquireAbilities(TArray<TSubclassOf<UWBGameplayAbili
             //}
         }
     }
+}*/
+
+FGameplayAbilitySpecHandle AWizardBrawlCharacter::GiveAbilityToInputID(TSubclassOf<UGameplayAbility> Ability, int Level, int32 InputId /*= -1*/)
+{
+    if (AbilitySystemComponent)
+    {
+        FGameplayAbilitySpec Spec(Ability->GetDefaultObject<UGameplayAbility>(), Level, InputId, this);
+        return GetAbilitySystemComponent()->GiveAbility(Spec);
+    }
+
+    return FGameplayAbilitySpecHandle();
 }
 
 
@@ -126,7 +138,7 @@ void AWizardBrawlCharacter::PossessedBy(AController* NewController)
 
 	AbilitySystemComponent->InitAbilityActorInfo(this, this);
 
-	InitializeAttributes();
+//	InitializeAttributes();
 }
 
 void AWizardBrawlCharacter::OnRep_PlayerState()
@@ -135,7 +147,7 @@ void AWizardBrawlCharacter::OnRep_PlayerState()
 
 	AbilitySystemComponent->InitAbilityActorInfo(this, this);
 
-	InitializeAttributes();
+	//InitializeAttributes();
 
 	if (AbilitySystemComponent && InputComponent) {
 		FGameplayAbilityInputBinds Binds ("Confirm", "Cancel", "EWBAbilityInputID", static_cast<int32>(EWBAbilityInputID::Confirm), static_cast<int32>(EWBAbilityInputID::Cancel));

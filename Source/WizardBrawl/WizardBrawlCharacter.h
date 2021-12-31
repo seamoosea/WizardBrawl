@@ -9,6 +9,8 @@
 #include "WBAttributeSet.h"
 #include "WBGameplayAbility.h"
 #include <GameplayEffectTypes.h>
+#include "AbilitySystemComponent.h"
+#include "Abilities/GameplayAbility.h"
 #include "WizardBrawlCharacter.generated.h"
 
 class UAttributeSetBase;
@@ -33,31 +35,46 @@ public:
 	/** Returns CursorToWorld subobject **/
 	FORCEINLINE class UDecalComponent* GetCursorToWorld() { return CursorToWorld; }
 
+    // Implement IAbilitySystemInterface
 	virtual class UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
-	virtual void InitializeAttributes();
-
+	//virtual void InitializeAttributes();
 
     // Called to bind functionality to input
     //virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
-    UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "WizardBrawlCharacter")
-    UWBAbilitySystemComponent* AbilitySystemComp;
+    UFUNCTION(BlueprintCallable, Category = "WizardBrawlCharacter")
+        void AcquireAbility(TSubclassOf<UGameplayAbility> AbilityToAcquire);
 
-    UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "WizardBrawlCharacter")
-    UWBAttributeSet* AttributeSetBaseComp;
-
-
-
-    UFUNCTION(BlueprintCallable, Category = "CharacterBase")
-        void AcquireAbility(TSubclassOf<UWBGameplayAbility> AbilityToAcquire);
-    UFUNCTION(BlueprintCallable, Category = "CharacterBase")
-        void AcquireAbilities(TArray<TSubclassOf<UWBGameplayAbility>> AbilityToAcquire);
+   // UFUNCTION(BlueprintCallable, Category = "WizardBrawlCharacter")
+     //   void AcquireAbilities(TArray<TSubclassOf<UWBGameplayAbility>> AbilityToAcquire);
 
     //acquire abilities above
 
 	virtual void PossessedBy(AController* NewController) override;
 	virtual void OnRep_PlayerState() override;
+
+    UFUNCTION(BlueprintCallable, Category = Ability)
+   virtual FGameplayAbilitySpecHandle GiveAbilityToInputID(TSubclassOf<UGameplayAbility> Ability, int Level, int32 InputId = -1);
+
+
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "WizardBrawlCharacter")
+    class UWBAbilitySystemComponent* AbilitySystemComponent;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "WizardBrawlCharacter")
+    class UWBAttributeSet* Attributes;
+
+    UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "WizardBrawlCharacter")
+    TSubclassOf<class UGameplayEffect> DefaultAttributeEffect;
+
+
+    uint8 GetTeamID() const;
+
+    UFUNCTION(BlueprintCallable, Category = "WizardBrawlCharacter")
+        void AddGameplayTag(FGameplayTag& TagToAdd);
+    UFUNCTION(BlueprintCallable, Category = "WizardBrawlCharacter")
+      void RemoveGameplayTag(FGameplayTag& TagToRemove);
 
 
 private:
@@ -72,22 +89,6 @@ private:
 	/** A decal that projects to the cursor location. */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class UDecalComponent* CursorToWorld;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Abilities", meta = (AllowPrivateAccess = "true"))
-	class UWBAbilitySystemComponent* AbilitySystemComponent;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Abilities", meta = (AllowPrivateAccess = "true"))
-	class UWBAttributeSet* Attributes;
-
-	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "Abilities", meta = (AllowPrivateAccess = "true"))
-	TSubclassOf<class UGameplayEffect> DefaultAttributeEffect;
-
-    uint8 GetTeamID() const;
-
-    UFUNCTION(BlueprintCallable, Category = "WizardBrawlCharacter")
-        void AddGameplayTag(FGameplayTag& TagToAdd);
-    UFUNCTION(BlueprintCallable, Category = "WizardBrawlCharacter")
-      void RemoveGameplayTag(FGameplayTag& TagToRemove);
 
 
 };
