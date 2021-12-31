@@ -54,21 +54,6 @@ public:
 	virtual void PossessedBy(AController* NewController) override;
 	virtual void OnRep_PlayerState() override;
 
-    UFUNCTION(BlueprintCallable, Category = Ability)
-   virtual FGameplayAbilitySpecHandle GiveAbilityToInputID(TSubclassOf<UGameplayAbility> Ability, int Level, int32 InputId = -1);
-
-
-
-    UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "WizardBrawlCharacter")
-    class UWBAbilitySystemComponent* AbilitySystemComponent;
-
-    UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "WizardBrawlCharacter")
-    class UWBAttributeSet* Attributes;
-
-    UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "WizardBrawlCharacter")
-    TSubclassOf<class UGameplayEffect> DefaultAttributeEffect;
-
-
     uint8 GetTeamID() const;
 
     UFUNCTION(BlueprintCallable, Category = "WizardBrawlCharacter")
