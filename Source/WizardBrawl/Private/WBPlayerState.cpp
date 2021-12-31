@@ -5,14 +5,20 @@
 
 AWBPlayerState::AWBPlayerState()
 {
+	
 	AbilitySystemComponent = CreateDefaultSubobject<UWBAbilitySystemComponent>(TEXT("AbilitySystemComponent"));
-	AbilitySystemComponent->SetIsReplicated(true);
-	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
+	/*if (AbilitySystemComponent) {
 
-
+		AbilitySystemComponent->SetIsReplicated(true);
+		AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
+	}
+	else {
+		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, TEXT("No ASC"));
+	}
+	/*
 	Attributes = CreateDefaultSubobject<UWBAttributeSet>(TEXT("AttributeSetBase"));
 
-	NetUpdateFrequency = 100.0f;
+	NetUpdateFrequency = 100.0f;*/
 }
 
 UAbilitySystemComponent* AWBPlayerState::GetAbilitySystemComponent() const
