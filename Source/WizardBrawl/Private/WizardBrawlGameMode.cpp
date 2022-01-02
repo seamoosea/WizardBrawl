@@ -11,7 +11,7 @@ AWizardBrawlGameMode::AWizardBrawlGameMode()
 	PlayerControllerClass = AWizardBrawlPlayerController::StaticClass();
 
 	// set default pawn class to our Blueprinted character
-	static ConstructorHelpers::FClassFinder<APawn> PlayerPawnBPClass(TEXT("/Game/WizardBrawlBPs/Blueprints/BP_WizardBrawlCharacter"));
+	static ConstructorHelpers::FClassFinder<APawn> PlayerPawnBPClass(TEXT("/Game/WizardBrawl/Blueprints/BP_WizardBrawlCharacter.BP_WizardBrawlCharacter_C"));
 	if (PlayerPawnBPClass.Class != nullptr)
 	{
 		DefaultPawnClass = PlayerPawnBPClass.Class;
